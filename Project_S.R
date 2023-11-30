@@ -3,6 +3,7 @@ library(nflreadr)
 library(nflfastR)
 library(gsisdecoder)
 library(qs)
+library(fuzzyjoin)
 
 
 #Loading Player Stats by Week
@@ -19,30 +20,52 @@ p <- wr %>% group_by(player_id, season) %>% summarise(name = unique(player_displ
 #This adds total years played and years experience
 p <- p %>% group_by(player_id) %>% mutate(total_seasons = length(player_id), year_exp = order(season)) 
 
+#Remove dup player with same name to avoid matching confusion
+p <- p %>% filter(player_id != '00-0020337' & player_id != '00-0020452' & player_id != '00-0021425')
+
+p$name <- ifelse(p$player_id == '00-0023452', 'Mike Williams1', p$name)
+p$name <- ifelse(p$player_id == '00-0027702', 'Mike Williams2', p$name )
+
+#Name and rookie szn (Not sure if needed)
+o <- p %>% group_by(name) %>% summarise(l = min(season))
+
 
 
 #Draft Pick Data
 draft_picks <- read_csv("https://raw.githubusercontent.com/leesharpe/nfldata/master/data/draft_picks.csv")
 draft_wr <- draft_picks %>% filter(position == 'WR' & season >= 2003 & season < 2023) 
 draft_wr <- draft_wr %>% select(names(draft_wr)[c(1,2,3,4,5,6,10)])
-#642 different names
 
+#After using a fuzzy match with max dist to compare strings, manually changed the strings to match
+draft_wr$pfr_name <- ifelse(draft_wr$pfr_name == 'Gabriel Davis', 'Gabe Davis', draft_wr$pfr_name)
+draft_wr$pfr_name <- ifelse(draft_wr$pfr_name == 'Henry Ruggs III', 'Henry Ruggs', draft_wr$pfr_name)
 
-#TESTING
-l <- draft_wr %>% filter(season == 2003)
-k <- p %>% filter(season == 2003)
-
-not_2003 <- k[!(k$name %in% l$pfr_name),]
-p <- p[!(p$player_id %in% not_2003$player_id),]
-
-
-#We want all draft pick names in here
+#Double Matches
+draft_wr$pfr_name <- ifelse(draft_wr$pfr_id == 'WillMi03', 'Mike Williams1', draft_wr$pfr_name)
+draft_wr$pfr_name <- ifelse(draft_wr$pfr_id == 'WillMi04', 'Mike Williams2', draft_wr$pfr_name)
+draft_wr$pfr_name <- str_replace(draft_wr$pfr_name, 'KJ Hamler', 'K.J. Hamler')
+draft_wr$pfr_name <- str_replace(draft_wr$pfr_name, 'D.K. Metcalf', 'DK Metcalf')
+draft_wr$pfr_name <- str_replace(draft_wr$pfr_name, 'Equanimeous St.Brown','Equanimeous St. Brown')
+draft_wr$pfr_name <- str_replace(draft_wr$pfr_name, 'JJ Nelson','J.J. Nelson')
+draft_wr$pfr_name <- str_replace(draft_wr$pfr_name, 'DJ Chark','D.J. Chark')
+draft_wr$pfr_name <- str_replace(draft_wr$pfr_name, 'Laviska Shenault Jr.','Laviska Shenault')
+draft_wr$pfr_name <- str_replace(draft_wr$pfr_name, 'Terrace Marshall Jr.','Terrace Marshall')
+draft_wr$pfr_name <- str_replace(draft_wr$pfr_name, 'Michael Pittman Jr.','Michael Pittman')
+#Changed these based on my fuzzy join
 
 #Rookie Stats
 all <- draft_wr %>% left_join(p, by = c('pfr_name'= 'name', 'season' = 'season'))
-#All are all rookie stats with their draft position (go over something with the match)
+#All are all rookie stats with their draft position
 
-#Rookie gets draft pick data (might have to ditch UDFAs)
+
+#Going to omit the ones that didnt match or didnt record a catch in their rookie season 
+###May not have matched bc of name, position different, etc, or may be blank bc no stats (injured, etc.)
+all <-(na.omit(all))
+
+
+dim(all)
+#have 453 total stats for rookies
+
 
 
 #Non-Rookie Stats: After Year 1
@@ -50,11 +73,6 @@ non_rookie <- p %>% filter(year_exp > 1)
 nr <- non_rookie %>% left_join(draft_wr[c(3,4,6)], by = c('name'= 'pfr_name'))
 nr <- na.omit(nr)
 
-
-
-
-
-
-
-
+length(unique(nr$name))
+#434 total players have stats from year two and on
 
