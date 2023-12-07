@@ -7,6 +7,7 @@ for (i in 1:7){
   x = seq(0,20,by=.1)
   sd = sqrt(var(nr$ypt[nr$round==i]))
   mean = mean(nr$ypt[nr$round==i])
+  print(mean)
   y = dnorm(x,mean = mean,sd = sd)
   lines(x,y)
 }
