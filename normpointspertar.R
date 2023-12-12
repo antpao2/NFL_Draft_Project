@@ -3,8 +3,9 @@ nr = nr[nr$targets >1,]
 all = all[all$targets > 1,]
 #plot histograms and overlay normal curve for yards per target for each round.
 #It shows that the data is roughly normal
+par(mfrow = c(3, 3))
 for (i in 1:7){
-  hist(nr$yards_per_target[nr$round==i],probability =T)
+  hist(nr$yards_per_target[nr$round==i],probability =T,breaks = 20,main = i,xlim=c(0,40) ,xlab = "Yards per Target")
   x = seq(0,20,by=.1)
   sd = sqrt(var(nr$yards_per_target[nr$round==i]))
   mean = mean(nr$yards_per_target[nr$round==i])
@@ -36,6 +37,7 @@ for (i in 1:7){
   muns = c(muns,mun)
   s2ns = c(s2ns,s2n)
 }
+par(mfrow = c(3, 3))
 thetak = seq(4,13.5,by=.1)
 sigma2l = seq(.001,.3,by = .001)
 df <- data.frame(matrix(ncol = length(sigma2l), nrow = length(thetak)))
@@ -48,7 +50,9 @@ for (group in 1:7){
     }
   }
   newdf = as.matrix(df)
-  image.plot(thetak,sigma2l,newdf,xlab = group)
+  image(thetak,sigma2l,newdf,xlab = "theta",ylab = "sigma2",main = group)
+  
+  #image.plot(thetak,sigma2l,newdf,xlab = "theta",ylab = "sigma2",main = group)
 }
 
 #Distribution for only theta:
@@ -59,26 +63,46 @@ for (group in 1:7){
   thetaMat[,group] <- rnorm(10000,muns[group],sqrt(s2Mat[,group]/kn))
   
 }
-hist(thetaMat[,1])
-hist(thetaMat[,2])
-hist(thetaMat[,3])
-hist(thetaMat[,4])
-hist(thetaMat[,5])
-hist(thetaMat[,6])
-hist(thetaMat[,7])
+par(mfrow = c(3, 3))
+hist(thetaMat[,1], xlab = "Theta For Round 1", main = "", probability = T)
+hist(thetaMat[,2], xlab = "Theta For Round 2", main = "", probability = T)
+hist(thetaMat[,3], xlab = "Theta For Round 3", main = "", probability = T)
+hist(thetaMat[,4], xlab = "Theta For Round 4", main = "", probability = T)
+hist(thetaMat[,5], xlab = "Theta For Round 5", main = "", probability = T)
+hist(thetaMat[,6], xlab = "Theta For Round 6", main = "", probability = T)
+hist(thetaMat[,7], xlab = "Theta For Round 7", main = "", probability = T)
 
 #prob that mean of 1>other groups:
 for (i in 2:7){
   print(mean(thetaMat[,1]>thetaMat[,i]))
 }
+for (i in 3:7){
+  print(mean(thetaMat[,2]>thetaMat[,i]))
+}
+for (i in 4:7){
+  print(mean(thetaMat[,3]>thetaMat[,i]))
+}
+for (i in 5:7){
+  print(mean(thetaMat[,4]>thetaMat[,i]))
+}
+for (i in 6:7){
+  print(mean(thetaMat[,5]>thetaMat[,i]))
+}
+print(mean(thetaMat[,6]>thetaMat[,7]))
+
 
 #plot the output with the data. I think this is the posterior predictive Distribution
 x = seq(0,20,by = .1)
-for (group in 1:7){
+par(mfrow = c(1, 1))
+colors = c("black","red","orange","gold","green","blue","purple")
+y = dnorm(x,mean = muns[1],sd = sqrt(s2ns)[1])
+plot(x,y,"lines",col = colors[1],lwd = 2,xlab = "Yards per Target", ylab = "Probability")
+title(main = "Posterior Predictive Distributions for Each Round")
+for (group in 2:7){
   y = dnorm(x,mean = muns[group],sd = sqrt(s2ns)[group])
-  hist(nr$yards_per_target[nr$round==group],probability = T)
-  lines(x,y)
+  lines(x,y,col = colors[group],lwd=2)
 }
+legend("topright",legend = 1:7,col = colors,lty=1)
 #sample people from the posterior predictive distribution
 sample = matrix(ncol = 7,nrow = 10000)
 for (group in 1:7){
@@ -88,4 +112,18 @@ for (group in 1:7){
 for (group in 2:7){
   print(mean(sample[,1]> sample[,group]))
 }
+for (group in 3:7){
+  print(mean(sample[,2]> sample[,group]))
+}
+for (group in 4:7){
+  print(mean(sample[,3]> sample[,group]))
+}
+for (group in 5:7){
+  print(mean(sample[,4]> sample[,group]))
+}
+for (group in 6:7){
+  print(mean(sample[,5]> sample[,group]))
+}
+print(mean(sample[,6]> sample[,7]))
+
 
