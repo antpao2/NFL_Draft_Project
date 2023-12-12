@@ -14,3 +14,6 @@ draft_wr --> contains all draft information for Wr from 2003-2022
 
 
 ALL NA HAVE BEEN REMOVED
+
+# How to run the project codes files
+Open the folder Project Codes on github
