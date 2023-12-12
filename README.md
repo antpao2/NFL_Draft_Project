@@ -3,17 +3,16 @@ STATS551 Project
 
 
 
-Project_ypt File Gets the Data for the Project:
+Project_ypt File Gets the Data for the Project. It has the following dataframes that we worked with.
 
 
 all --> Dataframe containing all rookie WR stats from 2003-2022
 
-nr --> contains Non-Rookie Stats from 2003-2022
+nr --> Contains Non-Rookie Stats from 2003-2022
 
-draft_wr --> contains all draft information for Wr from 2003-2022
+draft_wr --> Contains all draft information for Wr from 2003-2022
 
 
-ALL NA HAVE BEEN REMOVED
 
 # How to run the project codes files
 Open the folder Project Codes on github
